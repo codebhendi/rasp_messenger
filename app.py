@@ -41,11 +41,38 @@ def turn_on_light():
 
     GPIO.output(18,GPIO.LOW)
 
+def set_alarm(hours, minutes):
+    from crontab import CronTab
+    import os
+    
+    cwd = os.getcwd()
+
+    cron = CronTab(user=True)
+    print('python ' + cwd + '/run_sound.py')
+    job = cron.new(command='python ' + cwd + '/run_sound.py')
+    job.minute.on(minutes)
+    job.hour.on(hours)
+
+    cron.write()
+
+def check_for_alarm(txt_rcvd):
+    import re
+    time = re.search("(?<=wake me up at )[0-9+:]*")
+
+    if time == '' :
+        return False
+
+    hours = int(time[:2])
+    minutes = int(time[3:])
+
+    set_alarm(hours, minutes)
+
 def process_text(txt_rcvd):
     
     if txt_rcvd == "turn on the light" :
         turn_on_light()
-
+        return "success"
+    elif check_for_alarm(txt_rcvd) :
         return "success"
 
 
